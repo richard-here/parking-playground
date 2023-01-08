@@ -24,7 +24,6 @@ class ParkingHandler {
   }
 
   async getParkingHandler(request, h) {
-    this._validator.validateGetParkingPayload(request.payload);
     const {
       type, enterTime, exitTime, priceMin, priceMax,
     } = request.query;

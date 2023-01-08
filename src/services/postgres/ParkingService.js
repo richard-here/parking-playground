@@ -9,6 +9,13 @@ class ParkingService {
 
   static calculatePrice(type, enterTime, exitTime) {
     const range = exitTime - enterTime;
+    if (range < 0) {
+      throw new InvariantError('Exit time should not before enter time');
+    }
+    if (type !== 'car' && type !== 'motorcycle') {
+      throw new InvariantError('Type is invalid');
+    }
+
     const days = Math.floor(range / 86400000);
     const hours = Math.floor((range % 86400000) / 3600000);
     const minutes = Math.floor((range % 3600000) / 60000);
@@ -39,10 +46,9 @@ class ParkingService {
 
   async getParkingData({ type, timeRange, priceRange }) {
     const query = {
-      text: `
-        SELECT id, type, extract(EPOCH FROM enter_time) * 1000 AS enter_time,
-          extract(EPOCH FROM exit_time) * 1000 AS exit_time, price
-        FROM parking WHERE TRUE`,
+      text: 'SELECT id, type, extract(EPOCH FROM enter_time) * 1000 AS enter_time, '
+        + 'extract(EPOCH FROM exit_time) * 1000 AS exit_time, price '
+        + 'FROM parking WHERE TRUE',
       values: [],
     };
     let textToAppend = '';

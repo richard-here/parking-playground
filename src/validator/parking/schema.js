@@ -17,7 +17,7 @@ const GetParkingPayloadSchema = Joi.object({
   priceMin: Joi.number().optional(),
   priceMax: Joi.number().when('priceMin', {
     is: Joi.number(),
-    then: Joi.number().greater(Joi.ref('priceMin')),
+    then: Joi.number().min(Joi.ref('priceMin')),
     otherwise: Joi.number(),
   }).optional(),
 });
