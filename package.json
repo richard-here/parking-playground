@@ -4,8 +4,9 @@
   "description": "Parking playground backend service",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "migrate": "node-pg-migrate"
+    "start-dev": "nodemon ./src/server.js",
+    "migrate": "node-pg-migrate",
+    "test": "mocha --recursive ./tests"
   },
   "author": "richard.herew@gmail.com",
   "license": "ISC",
@@ -18,8 +19,14 @@
     "pg": "^8.8.0"
   },
   "devDependencies": {
+    "chai": "^4.3.7",
     "eslint": "^8.31.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.26.0"
+    "eslint-plugin-chai": "^0.0.1",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-mocha": "^10.1.0",
+    "mocha": "^10.2.0",
+    "nodemon": "^2.0.20",
+    "sinon": "^15.0.1"
   }
 }

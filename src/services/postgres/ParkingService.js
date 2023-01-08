@@ -3,8 +3,8 @@ const InvariantError = require('../../exceptions/InvariantError');
 const mapParkingDBToModel = require('../../utils');
 
 class ParkingService {
-  constructor() {
-    this._pool = new Pool();
+  constructor(pool) {
+    this._pool = pool || new Pool();
   }
 
   static calculatePrice(type, enterTime, exitTime) {
@@ -13,7 +13,7 @@ class ParkingService {
     const hours = Math.floor((range % 86400000) / 3600000);
     const minutes = Math.floor((range % 3600000) / 60000);
     let price;
-    if (type === 'car') {
+    if (type.toLowerCase() === 'car') {
       price = days * 80000 + hours * 5000 + (minutes >= 1 ? 5000 : 0);
     } else {
       price = days * 40000 + hours * 2000 + (minutes >= 1 ? 2000 : 0);
@@ -24,9 +24,9 @@ class ParkingService {
   async addParkingData({
     type, enterTime, exitTime,
   }) {
-    const price = this._calculatePrice(type, enterTime, exitTime);
+    const price = ParkingService.calculatePrice(type, enterTime, exitTime);
     const query = {
-      text: 'INSERT INTO parking(type, enter_time, exit_time, price) VALUES($1, $2, $3, $4) RETURNING id',
+      text: "INSERT INTO parking(type, enter_time, exit_time, price) VALUES(lower($1), to_timestamp($2 / 1000.0) AT TIME ZONE 'UTC', to_timestamp($3 / 1000.0) AT TIME ZONE 'UTC', $4) RETURNING id",
       values: [type, enterTime, exitTime, price],
     };
 
@@ -34,11 +34,15 @@ class ParkingService {
     if (!result.rowCount) {
       throw new InvariantError('Insertion of parking data failed');
     }
+    return result.rows[0].id;
   }
 
   async getParkingData({ type, timeRange, priceRange }) {
     const query = {
-      text: 'SELECT * FROM parking WHERE TRUE',
+      text: `
+        SELECT id, type, extract(EPOCH FROM enter_time) * 1000 AS enter_time,
+          extract(EPOCH FROM exit_time) * 1000 AS exit_time, price
+        FROM parking WHERE TRUE`,
       values: [],
     };
     let textToAppend = '';
@@ -51,12 +55,13 @@ class ParkingService {
     }
     if (timeRange) {
       if (timeRange.start) {
-        textToAppend += ` AND enter_time >= $${index}`;
+        textToAppend += ` AND enter_time >= (to_timestamp($${index} / 1000.0) AT TIME ZONE 'UTC')`;
         valuesToPush.push(timeRange.start);
         index += 1;
       }
       if (timeRange.end) {
-        textToAppend += ` AND exit_time <= $${index}`;
+        textToAppend += ` AND exit_time <= (to_timestamp($${index} / 1000.0) AT TIME ZONE 'UTC')`;
+        valuesToPush.push(timeRange.end);
         index += 1;
       }
     }

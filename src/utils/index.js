@@ -8,8 +8,8 @@ const mapParkingDBToModel = ({
 }) => ({
   id,
   type,
-  enterTime: enter_time,
-  exitTime: exit_time,
+  enterTime: parseInt(enter_time, 10),
+  exitTime: parseInt(exit_time, 10),
   price,
 });
 

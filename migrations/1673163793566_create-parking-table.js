@@ -17,7 +17,7 @@ exports.up = (pgm) => {
       notNull: true,
     },
     price: {
-      type: 'BIGINT',
+      type: 'INT',
       notNull: true,
     },
   });
